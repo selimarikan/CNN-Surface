@@ -26,12 +26,11 @@ trainSet.data = trainSet.data:double()
 
 print('Loaded training data.')
 
--- Data conditioning: 0-mean and 1-stddev
+-- Data conditioning: 0-mean and unit-stddev
 mean = {}
 stdv = {}
 for i = 1, trainSet.data:size(2) do --for each color channel
-    -- Selects column 1 -> Data
-    mean[i] = trainSet.data:select(2, i):mean()
+    mean[i] = trainSet.data:select(2, i):mean() -- Selects column 1 -> Data
     print('Channel ' .. i .. ' Mean: ' .. mean[i])
     trainSet.data:select(2, i):add(-mean[i]) -- subtract the mean
     
@@ -47,7 +46,7 @@ end
 net = nn.Sequential()
 
 --input 1x64x64
-net:add(nn.SpatialConvolution(3, 16, 3, 3, 1, 1, 1, 1)) -- nInputPlane, nOutputPlane, kW, kH
+net:add(nn.SpatialConvolution(trainSet.data:size(2), 16, 3, 3, 1, 1, 1, 1)) -- nInputPlane, nOutputPlane, kW, kH
 net:add(nn.ReLU())
 net:add(nn.SpatialMaxPooling(2, 2, 2, 2))
 
@@ -61,14 +60,14 @@ net:add(nn.SpatialMaxPooling(2, 2, 2, 2))
 
 net:add(nn.View(16*8*8))
 
-net:add(nn.Linear(16*8*8, 512))
+net:add(nn.Linear(16*8*8, 1024))
 net:add(nn.ReLU())
-net:add(nn.Linear(512, 512))
+net:add(nn.Linear(1024, 1024))
 net:add(nn.ReLU())
-net:add(nn.Linear(512, 512))
+net:add(nn.Linear(1024, 1024))
 net:add(nn.ReLU())
 
-net:add(nn.Linear(512, #classes))
+net:add(nn.Linear(1024, #classes))
 net:add(nn.LogSoftMax())
 
 if useCUDA then
@@ -90,7 +89,7 @@ end
 trainer = nn.StochasticGradient(net, criterion)
 trainer.learningRate = 0.005
 trainer.learningRateDecay = 0.0001
-trainer.maxIteration = 25
+trainer.maxIteration = 30
 
 errorRates = {}
 learningRates = {}
@@ -166,7 +165,7 @@ end
 
 print('Loaded test data.')
 
-for i = 1, 3 do -- for each color channel
+for i = 1, trainSet.data:size(2) do -- for each color channel
     local channel = testSet.data:select(2, i)
     channel:add(-mean[i])
     channel:div(stdv[i])
@@ -178,7 +177,7 @@ timer = torch.Timer()
 -- Evaluate success rate of the training set
 correctInTrainingSet = 0
 
-for i=1,trainSet.data:size(1) do
+for i=1, trainSet.data:size(1) do
     local groundtruth = trainSet.labels[i]
     local prediction = net:forward(trainSet.data[i])
     local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
@@ -205,7 +204,7 @@ print(correctInTestSet, 100*correctInTestSet/testSet.data:size(1) .. ' % success
 
 class_performance = {0, 0}
 class_count = {0, 0}
-for i=1,testSet.data:size(1) do
+for i=1, testSet.data:size(1) do
     local groundtruth = testSet.labels[i]
     local prediction = net:forward(testSet.data[i])
     local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
