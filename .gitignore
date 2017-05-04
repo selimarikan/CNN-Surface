@@ -42,3 +42,6 @@ luac.out
 # Torch
 *.t7
 *.net
+*.caffemodel
+*.prototxt
+*.prototxt.lua
