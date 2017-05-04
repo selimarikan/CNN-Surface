@@ -43,24 +43,26 @@ if useCUDA then
   trainSet.data = trainSet.data:cuda()
 end
 
+print('Using ' .. trainSet.data:size(3) .. 'x' .. trainSet.data:size(4) .. ' images.')
+
 net = nn.Sequential()
 
 --input 1x256x256
-net:add(nn.SpatialConvolution(trainSet.data:size(2), 16, 3, 3, 1, 1, 1, 1)) -- nInputPlane, nOutputPlane, kW, kH
+net:add(nn.SpatialConvolution(trainSet.data:size(2), 32, 3, 3, 1, 1, 1, 1)) -- nInputPlane, nOutputPlane, kW, kH
 net:add(nn.ReLU())
 net:add(nn.SpatialMaxPooling(2, 2, 2, 2))
 
-net:add(nn.SpatialConvolution(16, 16, 3, 3, 1, 1, 1, 1))
+net:add(nn.SpatialConvolution(32, 32, 3, 3, 1, 1, 1, 1))
 net:add(nn.ReLU())
 net:add(nn.SpatialMaxPooling(2, 2, 2, 2)) -- kWxkH regions by step size dWxdH
 
-net:add(nn.SpatialConvolution(16, 16, 3, 3, 1, 1, 1, 1))
+net:add(nn.SpatialConvolution(32, 32, 3, 3, 1, 1, 1, 1))
 net:add(nn.ReLU())
 net:add(nn.SpatialMaxPooling(2, 2, 2, 2))
 
-net:add(nn.View(16*32*32))
+net:add(nn.View(32*32*32))
 
-net:add(nn.Linear(16*32*32, 512))
+net:add(nn.Linear(32*32*32, 512))
 net:add(nn.ReLU())
 net:add(nn.Linear(512, 512))
 net:add(nn.ReLU())
@@ -88,8 +90,8 @@ end
 -- Train the NN
 trainer = nn.StochasticGradient(net, criterion)
 trainer.learningRate = 0.01
-trainer.learningRateDecay = 0.00022
-trainer.maxIteration = 40
+trainer.learningRateDecay = 0.002
+trainer.maxIteration = 20
 
 errorRates = {}
 learningRates = {}
