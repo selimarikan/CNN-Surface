@@ -1,5 +1,6 @@
 require 'torch'
 require 'nn'
+nninit = require 'nninit'
 
 useCUDA = 1
 
@@ -48,28 +49,31 @@ print('Using ' .. trainSet.data:size(3) .. 'x' .. trainSet.data:size(4) .. ' ima
 net = nn.Sequential()
 
 --input 1x256x256
-net:add(nn.SpatialConvolution(trainSet.data:size(2), 32, 3, 3, 1, 1, 1, 1)) -- nInputPlane, nOutputPlane, kW, kH
+net:add(nn.SpatialConvolution(trainSet.data:size(2), 16, 3, 3, 1, 1, 1, 1):init('weight', nninit.normal, 0, 0.1)) -- nInputPlane, nOutputPlane, kW, kH
 net:add(nn.ReLU())
 net:add(nn.SpatialMaxPooling(2, 2, 2, 2))
 
-net:add(nn.SpatialConvolution(32, 32, 3, 3, 1, 1, 1, 1))
+net:add(nn.SpatialConvolution(16, 16, 3, 3, 1, 1, 1, 1):init('weight', nninit.normal, 0, 0.1))
 net:add(nn.ReLU())
 net:add(nn.SpatialMaxPooling(2, 2, 2, 2)) -- kWxkH regions by step size dWxdH
 
-net:add(nn.SpatialConvolution(32, 32, 3, 3, 1, 1, 1, 1))
+net:add(nn.SpatialConvolution(16, 16, 3, 3, 1, 1, 1, 1):init('weight', nninit.normal, 0, 0.1))
 net:add(nn.ReLU())
 net:add(nn.SpatialMaxPooling(2, 2, 2, 2))
 
-net:add(nn.View(32*32*32))
+net:add(nn.View(16*32*32))
 
-net:add(nn.Linear(32*32*32, 512))
+net:add(nn.Linear(16*32*32, 1024):init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}}))
 net:add(nn.ReLU())
-net:add(nn.Linear(512, 512))
+net:add(nn.Dropout(0.5))
+net:add(nn.Linear(1024, 1024):init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}}))
 net:add(nn.ReLU())
-net:add(nn.Linear(512, 512))
+net:add(nn.Dropout(0.5))
+net:add(nn.Linear(1024, 1024):init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}}))
 net:add(nn.ReLU())
+net:add(nn.Dropout(0.5))
 
-net:add(nn.Linear(512, #classes))
+net:add(nn.Linear(1024, #classes):init('weight', nninit.sparse, 0.1))
 net:add(nn.LogSoftMax())
 
 if useCUDA then
@@ -89,9 +93,9 @@ end
 
 -- Train the NN
 trainer = nn.StochasticGradient(net, criterion)
-trainer.learningRate = 0.01
-trainer.learningRateDecay = 0.002
-trainer.maxIteration = 20
+trainer.learningRate = 0.001
+trainer.learningRateDecay = 0.0000195
+trainer.maxIteration = 50
 
 errorRates = {}
 learningRates = {}
