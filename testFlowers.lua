@@ -1,5 +1,6 @@
 require 'torch'
 require 'nn'
+nninit = require 'nninit'
 
 useCUDA = 1
 
@@ -46,28 +47,31 @@ end
 net = nn.Sequential()
 
 --input 1x64x64
-net:add(nn.SpatialConvolution(trainSet.data:size(2), 16, 3, 3, 1, 1, 1, 1)) -- nInputPlane, nOutputPlane, kW, kH
+net:add(nn.SpatialConvolution(trainSet.data:size(2), 16, 3, 3, 1, 1, 1, 1):init('weight', nninit.normal, 0, 0.1)) -- nInputPlane, nOutputPlane, kW, kH
 net:add(nn.ReLU())
 net:add(nn.SpatialMaxPooling(2, 2, 2, 2))
 
-net:add(nn.SpatialConvolution(16, 16, 3, 3, 1, 1, 1, 1))
+net:add(nn.SpatialConvolution(16, 16, 3, 3, 1, 1, 1, 1):init('weight', nninit.normal, 0, 0.1))
 net:add(nn.ReLU())
 net:add(nn.SpatialMaxPooling(2, 2, 2, 2)) -- kWxkH regions by step size dWxdH
 
-net:add(nn.SpatialConvolution(16, 16, 3, 3, 1, 1, 1, 1))
+net:add(nn.SpatialConvolution(16, 16, 3, 3, 1, 1, 1, 1):init('weight', nninit.normal, 0, 0.1))
 net:add(nn.ReLU())
 net:add(nn.SpatialMaxPooling(2, 2, 2, 2))
 
 net:add(nn.View(16*8*8))
 
-net:add(nn.Linear(16*8*8, 1024))
+net:add(nn.Linear(16*8*8, 1024):init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}}))
 net:add(nn.ReLU())
-net:add(nn.Linear(1024, 1024))
+net:add(nn.Dropout(0.5))
+net:add(nn.Linear(1024, 1024):init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}}))
 net:add(nn.ReLU())
-net:add(nn.Linear(1024, 1024))
+net:add(nn.Dropout(0.5))
+net:add(nn.Linear(1024, 1024):init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}}))
 net:add(nn.ReLU())
+net:add(nn.Dropout(0.5))
 
-net:add(nn.Linear(1024, #classes))
+net:add(nn.Linear(1024, #classes):init('weight', nninit.sparse, 0.2))
 net:add(nn.LogSoftMax())
 
 if useCUDA then
@@ -87,9 +91,9 @@ end
 
 -- Train the NN
 trainer = nn.StochasticGradient(net, criterion)
-trainer.learningRate = 0.005
-trainer.learningRateDecay = 0.0001
-trainer.maxIteration = 30
+trainer.learningRate = 0.002
+trainer.learningRateDecay = 0.0002
+trainer.maxIteration = 50
 
 errorRates = {}
 learningRates = {}
