@@ -9,11 +9,12 @@ if useCUDA then
   require 'cunn'
 end
 
-setName = 'defectAndNonDefectMedium'
+setName = 'defectAndNonDefectLarge'
+setImageSize = '256'
 
 print('Loading training data...')
 
-trainSet = torch.load(setName .. '-train.t7', 'ascii')
+trainSet = torch.load(setName .. setImageSize .. '-train.t7', 'ascii')
 classes = {'defect', 'nonDefect'}
 
 setmetatable(trainSet,
@@ -61,9 +62,12 @@ net:add(nn.SpatialConvolution(16, 16, 3, 3, 1, 1, 1, 1):init('weight', nninit.no
 net:add(nn.ReLU())
 net:add(nn.SpatialMaxPooling(2, 2, 2, 2))
 
-net:add(nn.View(16*32*32))
+imageSize = tonumber(setImageSize)
+outMul = imageSize / 8
 
-net:add(nn.Linear(16*32*32, 1024):init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}}))
+net:add(nn.View(16*outMul*outMul))
+
+net:add(nn.Linear(16*outMul*outMul, 1024):init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}}))
 net:add(nn.ReLU())
 net:add(nn.Dropout(0.5))
 net:add(nn.Linear(1024, 1024):init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}}))
@@ -158,7 +162,7 @@ end
 print('Training complete.')
 
 -- Prepare the test set
-testSet = torch.load(setName .. '-test.t7', 'ascii')
+testSet = torch.load(setName .. setImageSize .. '-test.t7', 'ascii')
 testSet.data = testSet.data:double()
 
 if useCUDA then
@@ -218,5 +222,5 @@ print(class_performance)
 print(class_count)
 
 print('Saving net...')
---torch.save(setName .. '.net', net, 'ascii')
+--torch.save(setName .. setImageSize .. '.net', net, 'ascii')
 print('Net saved. \nALL DONE!')
