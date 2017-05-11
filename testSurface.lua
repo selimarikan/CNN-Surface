@@ -10,7 +10,7 @@ if useCUDA then
 end
 
 setName = 'defectAndNonDefectLarge'
-setImageSize = '256'
+setImageSize = '224'
 
 print('Loading training data...')
 
@@ -50,34 +50,34 @@ print('Using ' .. trainSet.data:size(3) .. 'x' .. trainSet.data:size(4) .. ' ima
 net = nn.Sequential()
 
 --input 1x256x256
-net:add(nn.SpatialConvolution(trainSet.data:size(2), 16, 3, 3, 1, 1, 1, 1):init('weight', nninit.normal, 0, 0.1)) -- nInputPlane, nOutputPlane, kW, kH
+net:add(nn.SpatialConvolution(trainSet.data:size(2), 32, 3, 3, 1, 1, 1, 1):init('weight', nninit.normal, 0, 0.1)) -- nInputPlane, nOutputPlane, kW, kH
 net:add(nn.ReLU())
 net:add(nn.SpatialMaxPooling(2, 2, 2, 2))
 
-net:add(nn.SpatialConvolution(16, 16, 3, 3, 1, 1, 1, 1):init('weight', nninit.normal, 0, 0.1))
+net:add(nn.SpatialConvolution(32, 32, 3, 3, 1, 1, 1, 1):init('weight', nninit.normal, 0, 0.1))
 net:add(nn.ReLU())
 net:add(nn.SpatialMaxPooling(2, 2, 2, 2)) -- kWxkH regions by step size dWxdH
 
-net:add(nn.SpatialConvolution(16, 16, 3, 3, 1, 1, 1, 1):init('weight', nninit.normal, 0, 0.1))
+net:add(nn.SpatialConvolution(32, 32, 3, 3, 1, 1, 1, 1):init('weight', nninit.normal, 0, 0.1))
 net:add(nn.ReLU())
 net:add(nn.SpatialMaxPooling(2, 2, 2, 2))
 
 imageSize = tonumber(setImageSize)
 outMul = imageSize / 8
 
-net:add(nn.View(16*outMul*outMul))
+net:add(nn.View(32*outMul*outMul))
 
-net:add(nn.Linear(16*outMul*outMul, 1024):init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}}))
+net:add(nn.Linear(32*outMul*outMul, 4096):init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}}))
 net:add(nn.ReLU())
 net:add(nn.Dropout(0.5))
-net:add(nn.Linear(1024, 1024):init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}}))
+net:add(nn.Linear(4096, 4096):init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}}))
 net:add(nn.ReLU())
 net:add(nn.Dropout(0.5))
-net:add(nn.Linear(1024, 1024):init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}}))
+net:add(nn.Linear(4096, 4096):init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}}))
 net:add(nn.ReLU())
 net:add(nn.Dropout(0.5))
 
-net:add(nn.Linear(1024, #classes):init('weight', nninit.sparse, 0.1))
+net:add(nn.Linear(4096, #classes):init('weight', nninit.sparse, 0.1))
 net:add(nn.LogSoftMax())
 
 if useCUDA then
@@ -192,7 +192,7 @@ end
 print(correctInTrainingSet, 100*correctInTrainingSet/trainSet.data:size(1) .. ' % success in training set')
 
 -- Evaluate success rate of the test set
-correctInTestSet = 0
+correctInTestSet = 0 
 
 for i=1,testSet.data:size(1) do
     local groundtruth = testSet.labels[i]
