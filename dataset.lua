@@ -3,23 +3,11 @@ require 'xlua'
 require 'image'
 require 'nn'
 
+-- To load a directory of images into a table
 function LoadImages(directory, extension)
 	local images = {}
-	local files = {}
-	for file in paths.files(directory) do
-		if file:find(extension .. '$') then
-			-- Debug
-			--print(paths.concat(directory, file))
-			table.insert(files, paths.concat(directory, file))
-		end
-	end
-
-	if #files == 0 then
-		print('No files found in ' .. directory .. ' with ' .. extension .. ' extension')
-		return 0
-	end
-
-	table.sort(files, function (a,b) return a < b end)
+	local files = GetImagesInDirectory(directory, extension)
+	
 	-- Debug
 	--print('Found files: ')
 	--print(files)
@@ -32,6 +20,24 @@ function LoadImages(directory, extension)
 	--print('Loaded images: ')
 	--print(images)
 	return images
+end
+
+function GetImagesInDirectory(directory, extension)
+	local imagePaths = {}
+	
+	for file in paths.files(directory) do
+		if file:find(extension .. '$') then
+			table.insert(imagePaths, imagePaths.concat(directory, file))
+		end
+	end
+
+	if #imagePaths == 0 then
+		print('No files found in ' .. directory .. ' with ' .. extension .. ' extension')
+		return 0
+	end
+
+	table.sort(imagePaths, function (a,b) return a < b end)
+	return imagePaths
 end
 
 function TableConcat(t1,t2)
