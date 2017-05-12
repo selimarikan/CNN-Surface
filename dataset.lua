@@ -27,7 +27,7 @@ function GetImagesInDirectory(directory, extension)
 	
 	for file in paths.files(directory) do
 		if file:find(extension .. '$') then
-			table.insert(imagePaths, imagePaths.concat(directory, file))
+			table.insert(imagePaths, paths.concat(directory, file))
 		end
 	end
 
@@ -45,6 +45,10 @@ function TableConcat(t1,t2)
         t1[#t1+1] = t2[i]
     end
     return t1
+end
+
+function GetFileName(path)
+  return path:match("^.+/(.+)$")
 end
 
 function TableToTensor(table)
