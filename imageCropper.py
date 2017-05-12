@@ -3,11 +3,12 @@ import skimage.io
 import os
 import math
 
-imageRootDir = 'g:/Selim/Thesis/Defect-Free/Stream'
+imageRootDir = "G:\Selim\Thesis\Code\SmashFilmIndonesia\BF"
 overlapPercentage = 5
 
 def GridCropImage(imagePath, outName, outDir, cellHeight, cellWidth):
     #img = Image.open(imagePath)
+    saveExtension = '.png'
     img = skimage.io.imread(imagePath, True, 'pil')
 
     (imageHeight, imageWidth) = img.shape
@@ -35,8 +36,19 @@ def GridCropImage(imagePath, outName, outDir, cellHeight, cellWidth):
             print('ColFrom-To: ' + str(colFrom) + ':' + str(colTo))
             print('RowFrom-To: ' + str(rowFrom) + ':' + str(rowTo))
             print(imageCrop.shape)
-            fileName = os.path.join(outDir, 'cell_' + outName + '_Row_' + str(iCellRow) + '_Col_' + str(iCellCol) + '.bmp')
+            fileName = os.path.join(outDir, 'cell_' + str(outName) + '_Row_' + str(iCellRow) + '_Col_' + str(iCellCol) + saveExtension)
             skimage.io.imsave(fileName, imageCrop, 'pil')
 
 if __name__ == '__main__':
-    GridCropImage(imageRootDir + '/4096_3M_TM1_Left_Test01_LeftCleaned.bmp', '3M_TM1_Left_Test01', imageRootDir + '/3MTM1Export4/', 256, 256)
+    index = 0
+    for file in os.listdir(imageRootDir):
+        if file.endswith('.bmp'):
+            filePath = os.path.join(imageRootDir, file)
+            dirPath = os.path.join(imageRootDir, 'image_'+ str(index))
+
+            if not os.path.exists(dirPath):
+                os.makedirs(dirPath)
+
+            print(filePath)
+            GridCropImage(filePath, index, dirPath, 256, 256)
+            index = index + 1
