@@ -10,7 +10,7 @@ if useCUDA then
 end
 
 setName = 'defectAndNonDefectLarge'
-setImageSize = '224'
+setImageSize = '64'
 
 print('Loading training data...')
 
@@ -222,5 +222,6 @@ print(class_performance)
 print(class_count)
 
 print('Saving net...')
---torch.save(setName .. setImageSize .. '.net', net, 'ascii')
-print('Net saved. \nALL DONE!')
+netFileName = setName .. setImageSize .. '.net'
+torch.save(netFileName, net, 'ascii')
+print('Net saved to : ' .. netFileName .. '\nALL DONE!')
