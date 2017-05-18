@@ -5,24 +5,26 @@ require 'nn'
 require 'dataset' -- local
 
 local extension = 'png'
+local imageSize = 64
 
 -- Load images works, loads a table of tensors
-defectImages = LoadImages('DefectMidSet/Defect/', extension)
-nonDefectImages = LoadImages('DefectMidSet/NonDefect/', extension)
-print('Images loaded.')
+defectImages = LoadImages('G:/Selim/Thesis/Code/3MSet_Large_Augmented/Defect/', extension)
+nonDefectImages = LoadImages('G:/Selim/Thesis/Code/3MSet_Large_Augmented/NonDefect/', extension)
+print('Images loaded. ' .. #defectImages .. ' defectImages and ' .. #nonDefectImages .. ' nonDefectImages')
 
 -- Create empty label tensors
 defectLabels = torch.ones(#defectImages)
 nonDefectLabels = torch.ones(#nonDefectImages):add(1)
+print('Labels created. ' .. defectLabels:size(1) .. ' defectLabels and ' .. nonDefectLabels:size(1) .. ' nonDefectLabels')
 
 -- Concat images and labels for t7 creation
 allImages = TableConcat(defectImages, nonDefectImages)
 allLabels = torch.cat(defectLabels, nonDefectLabels, 1)
-print('Concat done.')
+print('Concat done. ' .. #allImages .. ' allImages and ' .. allLabels:size(1) .. ' allLabels')
 
--- Scale images down to 256x256
+-- Scale images to imageSize x imageSize
 for i = 1, #allImages do
-	allImages[i] = image.scale(allImages[i], 256, 256, 'bilinear')
+	allImages[i] = image.scale(allImages[i], imageSize, imageSize, 'bilinear')
 end
 print('Image resize done.') 
 
@@ -46,7 +48,7 @@ testDataExport = {
 
 print('Saving datasets...')
 
-setName = 'defectAndNonDefectSmall'
+setName = 'defectAndNonDefectLargeAug' .. tostring(imageSize)
 torch.save(setName .. '-train.t7', trainDataExport, 'ascii')
 torch.save(setName .. '-test.t7', testDataExport, 'ascii')
 

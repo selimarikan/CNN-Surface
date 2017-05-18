@@ -53,7 +53,9 @@ end
 
 function TableToTensor(table)
 	local tensorSize = table[1]:size()
+	--print('TableToTensor: tensorSize is ' .. tostring(tensorSize)) -- Debug
 	local tensorSizeTable = {-1}
+	--print('tensorSize: ' .. tensorSize:size(1)) -- Debug
 	for i=1,tensorSize:size(1) do
 		tensorSizeTable[i+1] = tensorSize[i]
 	end
