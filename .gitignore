@@ -45,3 +45,4 @@ luac.out
 *.caffemodel
 *.prototxt
 *.prototxt.lua
+imageClassificationOutput.txt
