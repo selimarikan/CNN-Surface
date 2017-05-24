@@ -104,6 +104,8 @@ trainer.maxIteration = 50
 errorRates = {}
 learningRates = {}
 
+trainingTimer = torch.Timer()
+
 -- START TRAINING 
 local iteration = 1
 local currentLearningRate = trainer.learningRate
@@ -159,7 +161,7 @@ while true do
       end
 end
 
-print('Training complete.')
+print('Training complete in ' .. trainingTimer:time().real .. ' seconds')
 
 -- Prepare the test set
 testSet = torch.load(setName .. setImageSize .. '-test.t7', 'ascii')
