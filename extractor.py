@@ -15,7 +15,6 @@ def LoadImagesFromFolder(folderPath, extension):
 
 def ExtractFeaturesFromImageCV(imagePath, featureLayersToExtract, kernelSize, featureSavePath):
     showResult = False
-    # Load image
     rawImage = cv2.imread(imagePath, cv2.IMREAD_GRAYSCALE)
     gaussianImage = cv2.GaussianBlur(rawImage, (25, 25), 0)
 
@@ -244,12 +243,17 @@ def GenerateDefectImage(featureFiles, backgroundFiles, backgroundImageCount, fea
 
     return generatedImage
 
-if __name__ == '__main__':
-    mode = 'TestTransformation' # 'Extract', 'Generate', 'Transform' or 'TestTransformation'
-    basePath = r'G:\Selim\Thesis\Code\EBA5Aug\\'
+class ExecutionMode(Enum):
+    EXTRACT = 0,
+    GENERATE = 1,
+    TRANSFORM = 2,
+    TESTTRANSFORM = 3
 
-    # Extract features
-    if (mode == 'Extract'):
+if __name__ == '__main__':
+    mode = ExecutionMode.TESTTRANSFORM
+    basePath = r'C:\Users\Selim\Documents\GitHub\Files\3MSet_Large\\'
+
+    if (mode == ExecutionMode.EXTRACT):
         folderToExtractImages = os.path.join(basePath, 'Defect')
         folderToSaveFeatures = os.path.join(basePath, 'Features')
         imageFiles = LoadImagesFromFolder(folderToExtractImages, '.png')
@@ -257,7 +261,7 @@ if __name__ == '__main__':
         for image in imageFiles:
             ExtractFeaturesFromImageCV(image, 0, 0, folderToSaveFeatures)
 
-    if (mode == 'Generate'):
+    if (mode == ExecutionMode.GENERATE):
         generateCount = 500
         folderToFeatures = os.path.join(basePath, 'Features')
         folderToBgndImages = os.path.join(basePath, 'NonDefect')
@@ -282,7 +286,7 @@ if __name__ == '__main__':
             image = cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY)
             cv2.imwrite(os.path.join(folderToSaveGeneratedNonDefectImages, 'Image_' + str(iGenerate) + '.png'), image)
 
-    if (mode == 'Transform'):
+    if (ExecutionMode.TRANSFORM):
         generateCount = 500
         transformationCount = 3
         folderToDefectImages = os.path.join(basePath, 'Defect')
@@ -319,7 +323,7 @@ if __name__ == '__main__':
 
 
 
-    if (mode == 'TestTransformation'):
+    if (ExecutionMode.TESTTRANSFORM):
         imageFolder = os.path.join(basePath, 'NonDefect')
         imageFiles = LoadImagesFromFolder(imageFolder, '.png')
 
