@@ -13,7 +13,7 @@ def GetFilesFromFolder(folderPath, extension):
             files.append(filePath)
     return files
 
-def ExtractImageFeaturesCV(imagePath, featureLayersToExtract, kernelSize, featureSavePath):
+def ExtractImageFeaturesCV(imagePath, featureLayersToExtract, kernelSize, featureSavePath, isDefect):
     showResult = False
     rawImage = cv2.imread(imagePath, cv2.IMREAD_GRAYSCALE)
     gaussianImage = cv2.GaussianBlur(rawImage, (51, 51), 0)
@@ -27,9 +27,22 @@ def ExtractImageFeaturesCV(imagePath, featureLayersToExtract, kernelSize, featur
     # Feature 1
     f1a = cv2.add(rawImage, hfFeaturesImage)
     _, f1b = cv2.threshold(f1a, 0, 255, cv2.THRESH_OTSU)
+    if showResult:
+        cv2.imshow('f1b', f1b)
     f1bKernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
     f1c = cv2.morphologyEx(f1b, cv2.MORPH_CLOSE, f1bKernel)
-    f1d = cv2.bitwise_not(f1c)
+
+    if showResult:
+        cv2.imshow('f1c', f1c)
+
+    if isDefect:
+        f1d = cv2.bitwise_not(f1c)
+    else:
+        f1dKernel= cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (117, 117))
+        f1d = cv2.morphologyEx(f1c, cv2.MORPH_ERODE, f1dKernel)
+
+    if showResult:
+        cv2.imshow('f1d', f1d)
 
     # & each channel with the mask so that unnecessary pixels are deleted
     feature1Alpha = cv2.merge([rawImage & f1d, rawImage & f1d, rawImage & f1d, f1d], 4)
@@ -213,7 +226,8 @@ def GenerateDefectImage(featureFiles, backgroundFiles, backgroundImageCount, fea
         shiftY = np.random.randint(-41, 41)
         mat = np.float32([[1, 0, shiftX], [0, 1, shiftY]])
         imageToBeMerged = cv2.warpAffine(imageToBeMerged, mat, (cols, rows))
-        featureImage = cv2.add(featureImage, imageToBeMerged)  # cv2.addWeighted(featureImage, 1.0, featureImagesToProcess[iImage + 1], 1.0, 0)
+        featureImage = MergeLayersAlpha(featureImage, imageToBeMerged)
+        #featureImage = cv2.add(featureImage, imageToBeMerged)  # cv2.addWeighted(featureImage, 1.0, featureImagesToProcess[iImage + 1], 1.0, 0)
 
     # Try blurring
     featureImage = cv2.GaussianBlur(featureImage, (1, 1), 0)

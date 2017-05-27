@@ -32,17 +32,26 @@ if __name__ == '__main__':
 
     if (mode == ExecutionMode.EXTRACT):
         folderToExtractImages = os.path.join(basePath, 'Defect')
+        folderToExtractNonFeatures = os.path.join(basePath, 'NonDefect')
         folderToSaveFeatures = os.path.join(basePath, 'Features')
+        folderToSaveNonFeatures = os.path.join(basePath, 'NonFeatures')
         if not os.path.exists(folderToSaveFeatures):
             os.makedirs(folderToSaveFeatures)
+        if not os.path.exists(folderToSaveNonFeatures):
+            os.makedirs(folderToSaveNonFeatures)
         imageFiles = GetFilesFromFolder(folderToExtractImages, '.png')
+        bgndFiles = GetFilesFromFolder(folderToExtractNonFeatures, '.png')
 
         for image in imageFiles:
-            ExtractImageFeaturesCV(image, 0, 0, folderToSaveFeatures)
+            ExtractImageFeaturesCV(image, 0, 0, folderToSaveFeatures, isDefect=True)
+
+        for image in bgndFiles:
+            ExtractImageFeaturesCV(image, 0, 0, folderToSaveNonFeatures, isDefect=False)
 
     if (mode == ExecutionMode.GENERATE):
         generateCount = 50
         folderToFeatures = os.path.join(basePath, 'Features')
+        folderToNonFeatures = os.path.join(basePath, 'NonFeatures')
         folderToBgndImages = os.path.join(basePath, 'NonDefect')
         folderToSaveGeneratedDefectImages = os.path.join(basePath, 'GeneratedDefect')
         if not os.path.exists(folderToSaveGeneratedDefectImages):
@@ -51,6 +60,7 @@ if __name__ == '__main__':
         if not os.path.exists(folderToSaveGeneratedNonDefectImages):
             os.makedirs(folderToSaveGeneratedNonDefectImages)
         featureFiles = GetFilesFromFolder(folderToFeatures, '.png')
+        nonFeatureFiles = GetFilesFromFolder(folderToNonFeatures, '.png')
         bgndFiles = GetFilesFromFolder(folderToBgndImages, '.png')
 
         # Parameters
@@ -58,14 +68,13 @@ if __name__ == '__main__':
         generateFeatureImageCount = 2
         generateTransformationCount = 2
 
-
         for iGenerate in xrange(0, generateCount):
             image = GenerateDefectImage(featureFiles, bgndFiles, generateBgndImageCount, generateFeatureImageCount, generateTransformationCount)
             image = cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY)
             cv2.imwrite(os.path.join(folderToSaveGeneratedDefectImages, 'Image_' + str(iGenerate) + '.png'), image)
 
         for iGenerate in xrange(0, generateCount):
-            image = GenerateNonDefectImage(bgndFiles, 3, generateTransformationCount)
+            image = GenerateDefectImage(nonFeatureFiles, bgndFiles, generateBgndImageCount, generateFeatureImageCount, generateTransformationCount)
             image = cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY)
             cv2.imwrite(os.path.join(folderToSaveGeneratedNonDefectImages, 'Image_' + str(iGenerate) + '.png'), image)
 
@@ -112,7 +121,7 @@ if __name__ == '__main__':
         # TODO Fix extraction for col_6
         imagePath = os.path.join(folderToExtractImages, 'cell_3M_TM1_Middle_Test01_Row_15_Col_8.png')  # col_8
 
-        ExtractImageFeaturesCV(imagePath, 0, 0, folderToSaveFeatures)
+        ExtractImageFeaturesCV(imagePath, 0, 0, folderToSaveFeatures, isDefect=True)
 
 
     if (mode == ExecutionMode.TESTTRANSFORM):
