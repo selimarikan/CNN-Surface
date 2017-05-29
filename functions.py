@@ -17,8 +17,6 @@ def ExtractImageFeaturesCV(imagePath, featureLayersToExtract, kernelSize, featur
     showResult = False
     rawImage = cv2.imread(imagePath, cv2.IMREAD_GRAYSCALE)
     gaussianImage = cv2.GaussianBlur(rawImage, (51, 51), 0)
-    if showResult:
-        cv2.imshow('Gaussian', gaussianImage)
 
     hfFeaturesImage = cv2.subtract(rawImage, gaussianImage)  # Could be one of the feature layers
 
@@ -27,21 +25,21 @@ def ExtractImageFeaturesCV(imagePath, featureLayersToExtract, kernelSize, featur
     # Feature 1
     f1a = cv2.add(rawImage, hfFeaturesImage)
     _, f1b = cv2.threshold(f1a, 0, 255, cv2.THRESH_OTSU)
-    if showResult:
-        cv2.imshow('f1b', f1b)
-    f1bKernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
-    f1c = cv2.morphologyEx(f1b, cv2.MORPH_CLOSE, f1bKernel)
-
-    if showResult:
-        cv2.imshow('f1c', f1c)
+    f1b = cv2.bitwise_not(f1b)
 
     if isDefect:
-        f1d = cv2.bitwise_not(f1c)
+        f1bKernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
+        f1c = cv2.morphologyEx(f1b, cv2.MORPH_OPEN, f1bKernel)
+        f1d = f1c #cv2.bitwise_not(f1c)
     else:
+        f1bKernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
+        f1c = cv2.morphologyEx(f1b, cv2.MORPH_OPEN, f1bKernel)
         f1dKernel= cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (117, 117))
-        f1d = cv2.morphologyEx(f1c, cv2.MORPH_ERODE, f1dKernel)
+        f1d = cv2.morphologyEx(f1c, cv2.MORPH_DILATE, f1dKernel)
 
     if showResult:
+        cv2.imshow('f1b', f1b)
+        cv2.imshow('f1c', f1c)
         cv2.imshow('f1d', f1d)
 
     # & each channel with the mask so that unnecessary pixels are deleted

@@ -24,10 +24,11 @@ class ExecutionMode(Enum):
     GENERATE = 1,
     TRANSFORM = 2,
     TESTEXTRACT = 3,
-    TESTTRANSFORM = 4,
+    TESTGENERATE = 4,
+    TESTTRANSFORM = 5,
 
 if __name__ == '__main__':
-    mode = ExecutionMode.GENERATE
+    mode = ExecutionMode.TESTEXTRACT
     basePath = r'C:\Users\Selim\Documents\GitHub\Files\3MSet_Large\\'
 
     if (mode == ExecutionMode.EXTRACT):
@@ -49,7 +50,7 @@ if __name__ == '__main__':
             ExtractImageFeaturesCV(image, 0, 0, folderToSaveNonFeatures, isDefect=False)
 
     if (mode == ExecutionMode.GENERATE):
-        generateCount = 50
+        generateCount = 100
         folderToFeatures = os.path.join(basePath, 'Features')
         folderToNonFeatures = os.path.join(basePath, 'NonFeatures')
         folderToBgndImages = os.path.join(basePath, 'NonDefect')
@@ -113,16 +114,30 @@ if __name__ == '__main__':
             generateCount = generateCount - 1
 
     if (mode == ExecutionMode.TESTEXTRACT):
-        folderToExtractImages = os.path.join(basePath, 'Defect')
+        folderToExtractFeatures = os.path.join(basePath, 'DefectTest')
+        folderToExtractNonFeatures = os.path.join(basePath, 'NonDefectTest')
         folderToSaveFeatures = os.path.join(basePath, 'FeaturesTest')
+        folderToSaveNonFeatures = os.path.join(basePath, 'NonFeaturesTest')
         if not os.path.exists(folderToSaveFeatures):
             os.makedirs(folderToSaveFeatures)
+        if not os.path.exists(folderToSaveNonFeatures):
+            os.makedirs(folderToSaveNonFeatures)
+        featureImagePath = os.path.join(folderToExtractFeatures, 'cell_3M_TM1_Middle_Test01_Row_15_Col_8.png')  # col_8
+        nonFeatureImagePath = os.path.join(folderToExtractNonFeatures, 'cell_3M_TM1_Middle_Test01_Row_92_Col_5.png')
+        #ExtractImageFeaturesCV(featureImagePath, 0, 0, folderToSaveFeatures, isDefect=True)
+        ExtractImageFeaturesCV(nonFeatureImagePath, 0, 0, folderToSaveNonFeatures, isDefect=False)
 
-        # TODO Fix extraction for col_6
-        imagePath = os.path.join(folderToExtractImages, 'cell_3M_TM1_Middle_Test01_Row_15_Col_8.png')  # col_8
+    if (mode == ExecutionMode.TESTGENERATE):
+        folderToFeatures = os.path.join(basePath, 'Features')
+        folderToNonFeatures = os.path.join(basePath, 'NonFeatures')
+        folderToBgndImages = os.path.join(basePath, 'NonDefect')
+        featureFiles = GetFilesFromFolder(folderToFeatures, '.png')
+        nonFeatureFiles = GetFilesFromFolder(folderToNonFeatures, '.png')
+        bgndFiles = GetFilesFromFolder(folderToBgndImages, '.png')
 
-        ExtractImageFeaturesCV(imagePath, 0, 0, folderToSaveFeatures, isDefect=True)
-
+        imageDefect = GenerateDefectImage(featureFiles, bgndFiles, generateBgndImageCount, generateFeatureImageCount, generateTransformationCount)
+        imageDefect = cv2.cvtColor(imageDefect, cv2.COLOR_BGRA2GRAY)
+        cv2.imwrite(os.path.join(folderToSaveGeneratedDefectImages, 'Image_' + str(iGenerate) + '.png'), image)
 
     if (mode == ExecutionMode.TESTTRANSFORM):
         imageFolder = os.path.join(basePath, 'NonDefect')
