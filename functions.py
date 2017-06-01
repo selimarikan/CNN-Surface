@@ -13,6 +13,15 @@ def GetFilesFromFolder(folderPath, extension):
             files.append(filePath)
     return files
 
+def ShiftImage(image, maxShiftX = 100, maxShiftY = 100):
+    rows, cols, ch = image.shape
+    sX2 = int(math.ceil(maxShiftX / 2.0))
+    sY2 = int(math.ceil(maxShiftY / 2.0))
+    shiftX = np.random.randint(-sX2, sX2)
+    shiftY = np.random.randint(-sY2, sY2)
+    mat = np.float32([[1, 0, shiftX], [0, 1, shiftY]])
+    return cv2.warpAffine(image, mat, (cols, rows))
+
 def ExtractImageFeaturesCV(imagePath, featureLayersToExtract, kernelSize, featureSavePath, isDefect):
     showResult = False
     rawImage = cv2.imread(imagePath, cv2.IMREAD_GRAYSCALE)
@@ -113,82 +122,35 @@ def TransformImage(image, transformation):
         return cv2.GaussianBlur(image, (kernelSize, kernelSize), 0)
 
     if (transformation == Transformation.BRIGHTNESS):
-        multRatio = ((np.random.rand(1, 1) - 0.5) / 2.0) # -0.25 to 0.25
+        multRatio = ((np.random.rand(1, 1) - 0.5) / 3.5) # -0.14 to 0.14
         return cv2.addWeighted(image, 1.0, image, multRatio, 0)
 
     if (transformation == Transformation.SHIFT):
-        shiftX = np.random.randint(-41, 41)
-        shiftY = np.random.randint(-41, 41)
-        mat = np.float32([[1, 0, shiftX], [0, 1, shiftY]])
-        return cv2.warpAffine(image, mat, (cols, rows))
+        return ShiftImage(image)
 
-def GenerateNonDefectImage(backgroundFiles, backgroundImageCount, transformationCount):
-    showResult = False
-    # Parameters
-    generateBgndImageCount = backgroundImageCount
-    generateTransformationCount = transformationCount
-
-    backgroundFileIndices = np.linspace(0, len(backgroundFiles) - 1, len(backgroundFiles)).astype('uint8')
-
-    bgndImagesToProcess = []     # Pick random n background images and fuse them
-
-    # Select background images
-    while (generateBgndImageCount > 0):
-        # Pick random index
-        imageIndex = np.random.randint(0, len(backgroundFileIndices))
-        bgndImagesToProcess.append(cv2.imread(backgroundFiles[backgroundFileIndices[imageIndex]]))
-        # Remove used image index so it will not be picked again
-        backgroundFileIndices = np.delete(backgroundFileIndices, imageIndex)
-        generateBgndImageCount = generateBgndImageCount - 1
-
-    # Fuse background images
-    backgroundImage = bgndImagesToProcess[0]
-    for iImage in xrange(len(bgndImagesToProcess) - 1):
-        # Fix to 1/len multipliers to have equal weights
-        backgroundImage = cv2.addWeighted(backgroundImage, 0.5, bgndImagesToProcess[iImage + 1], 0.5, 0)
-
-    if (showResult):
-        # Create appropriate sized subplot layout
-        f, axarr = plt.subplots(max(generateBgndImageCount, generateFeatureImageCount) + 1, 3)
-
-        # Visualize background images
-        for iImage in xrange(len(bgndImagesToProcess)):
-            axarr[iImage, 0].imshow(bgndImagesToProcess[iImage])
-            axarr[iImage, 0].set_title('Background image ' + str(iImage))
-        axarr[len(axarr) - 1, 0].imshow(backgroundImage)
-        axarr[len(axarr) - 1, 0].set_title('Generated background image')
-
-    backgroundImage = UnsharpMask(backgroundImage)
-
-    for iTrafo in xrange(generateTransformationCount):
-        trafoType = np.random.randint(0, 5)
-        backgroundImage = TransformImage(backgroundImage, Transformation(trafoType))
-
-    return backgroundImage
-
-def GenerateDefectImage(featureFiles, backgroundFiles, backgroundImageCount, featureImageCount, transformationCount):
+def GenerateDefectImage(featureFiles, backgroundFiles, backgroundImageCount, featureImageCount, transformationCount, isDefect):
     showResult = False
     # Parameters
     generateBgndImageCount = backgroundImageCount
     generateFeatureImageCount = featureImageCount
     generateTransformationCount = transformationCount
 
-    # Hold indices of images to do array operations
+    # 1. Hold indices of images to do array operations
     featureFileIndices = np.linspace(0, len(featureFiles) - 1, len(featureFiles)).astype('uint8')
     backgroundFileIndices = np.linspace(0, len(backgroundFiles) - 1, len(backgroundFiles)).astype('uint8')
 
     bgndImagesToProcess = []     # Pick random n background images and fuse them
 
-    # Select background images
+    # 2. Select background images
     while (generateBgndImageCount > 0):
-        # Pick random index
+        # 2.1 Pick random index
         imageIndex = np.random.randint(0, len(backgroundFileIndices))
         bgndImagesToProcess.append(cv2.imread(backgroundFiles[backgroundFileIndices[imageIndex]]))
-        # Remove used image index so it will not be picked again
+        # 2.2 Remove used image index so it will not be picked again
         backgroundFileIndices = np.delete(backgroundFileIndices, imageIndex)
         generateBgndImageCount = generateBgndImageCount - 1
 
-    # Fuse background images
+    # 3. Fuse background images
     backgroundImage = bgndImagesToProcess[0]
     weight = 1.0 / len(bgndImagesToProcess)
     for iImage in xrange(len(bgndImagesToProcess) - 1):
@@ -206,30 +168,32 @@ def GenerateDefectImage(featureFiles, backgroundFiles, backgroundImageCount, fea
 
     featureImagesToProcess = []     # Pick random m feature images and fuse them
 
-    # Select feature images
+    # 4. Select feature images
     while (generateFeatureImageCount > 0):
-        # Pick random index
+        # 4.1 Pick random index
         imageIndex = np.random.randint(0, len(featureFileIndices))
         featureImagesToProcess.append(cv2.imread(featureFiles[featureFileIndices[imageIndex]], cv2.IMREAD_UNCHANGED))
-        # Remove used image so it will not be picked again
+        # 4.2 Remove used image so it will not be picked again
         featureFileIndices = np.delete(featureFileIndices, imageIndex)
         generateFeatureImageCount = generateFeatureImageCount - 1
 
-    # Fuse foreground images
+    # 5. Fuse foreground images
     featureImage = featureImagesToProcess[0]
     for iImage in xrange(len(featureImagesToProcess) - 1):
         imageToBeMerged = featureImagesToProcess[iImage + 1]
-        rows, cols, ch = imageToBeMerged.shape
-        shiftX = np.random.randint(-41, 41)
-        shiftY = np.random.randint(-41, 41)
-        mat = np.float32([[1, 0, shiftX], [0, 1, shiftY]])
-        imageToBeMerged = cv2.warpAffine(imageToBeMerged, mat, (cols, rows))
+        # 5.1 Transform feature images n times, only for defect
+        if isDefect:
+            for iTrafo in xrange(generateTransformationCount):
+                trafoType = np.random.randint(0, 7)
+                imageToBeMerged = TransformImage(imageToBeMerged, Transformation(trafoType))
+        # 5.2 Shift again anyway
+        imageToBeMerged = ShiftImage(imageToBeMerged, 50, 50)
         featureImage = MergeLayersAlpha(featureImage, imageToBeMerged)
-        #featureImage = cv2.add(featureImage, imageToBeMerged)  # cv2.addWeighted(featureImage, 1.0, featureImagesToProcess[iImage + 1], 1.0, 0)
 
-    # Try blurring
+    # 6. Try blurring the feature image to suppress artifacts
     featureImage = cv2.GaussianBlur(featureImage, (1, 1), 0)
 
+    # 7. Sharpen the background to compensate averaging
     backgroundImage = UnsharpMask(backgroundImage)
 
     if (showResult):
@@ -240,18 +204,14 @@ def GenerateDefectImage(featureFiles, backgroundFiles, backgroundImageCount, fea
         axarr[len(axarr) - 1, 1].imshow(featureImage)
         axarr[len(axarr) - 1, 1].set_title('Generated feature image')
 
-    # Final fusion of background and features
+    # 8. Final fusion of background and features
     height, width, chn = backgroundImage.shape
-
-    # Transform featureImage
-    # for iTrafo in xrange(generateTransformationCount):
-    #     trafoType = np.random.randint(0, 5)
-    #     featureImage = TransformImage(featureImage, Transformation(trafoType))
 
     generatedImage = MergeLayersAlpha(backgroundImage, featureImage)
 
+    # 9. Transform fused image
     for iTrafo in xrange(generateTransformationCount):
-        trafoType = np.random.randint(0, 5)
+        trafoType = np.random.randint(0, 6) # No shift for fused image
         generatedImage = TransformImage(generatedImage, Transformation(trafoType))
 
     if (showResult):

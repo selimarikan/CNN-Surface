@@ -9,7 +9,6 @@ from functions import TransformImage
 from functions import Transformation
 from functions import ExtractImageFeaturesCV
 from functions import GenerateDefectImage
-from functions import GenerateNonDefectImage
 
 def TestTransformation(imagePath, transformation):
     image = cv2.imread(imagePath)
@@ -28,7 +27,7 @@ class ExecutionMode(Enum):
     TESTTRANSFORM = 5,
 
 if __name__ == '__main__':
-    mode = ExecutionMode.TESTEXTRACT
+    mode = ExecutionMode.GENERATE
     basePath = r'C:\Users\Selim\Documents\GitHub\Files\3MSet_Large\\'
 
     if (mode == ExecutionMode.EXTRACT):
@@ -70,12 +69,12 @@ if __name__ == '__main__':
         generateTransformationCount = 2
 
         for iGenerate in xrange(0, generateCount):
-            image = GenerateDefectImage(featureFiles, bgndFiles, generateBgndImageCount, generateFeatureImageCount, generateTransformationCount)
+            image = GenerateDefectImage(featureFiles, bgndFiles, generateBgndImageCount, generateFeatureImageCount, generateTransformationCount, isDefect=True)
             image = cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY)
             cv2.imwrite(os.path.join(folderToSaveGeneratedDefectImages, 'Image_' + str(iGenerate) + '.png'), image)
 
         for iGenerate in xrange(0, generateCount):
-            image = GenerateDefectImage(nonFeatureFiles, bgndFiles, generateBgndImageCount, generateFeatureImageCount, generateTransformationCount)
+            image = GenerateDefectImage(nonFeatureFiles, bgndFiles, generateBgndImageCount, generateFeatureImageCount, generateTransformationCount, isDefect=False)
             image = cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY)
             cv2.imwrite(os.path.join(folderToSaveGeneratedNonDefectImages, 'Image_' + str(iGenerate) + '.png'), image)
 
@@ -131,13 +130,24 @@ if __name__ == '__main__':
         folderToFeatures = os.path.join(basePath, 'Features')
         folderToNonFeatures = os.path.join(basePath, 'NonFeatures')
         folderToBgndImages = os.path.join(basePath, 'NonDefect')
+        folderToSaveTestDefectImages = os.path.join(basePath, 'TestDefect')
+        folderToSaveTestNonDefectImages = os.path.join(basePath, 'TestNonDefect')
+        if not os.path.exists(folderToSaveTestDefectImages):
+            os.makedirs(folderToSaveTestDefectImages)
+        if not os.path.exists(folderToSaveTestNonDefectImages):
+            os.makedirs(folderToSaveTestNonDefectImages)
         featureFiles = GetFilesFromFolder(folderToFeatures, '.png')
         nonFeatureFiles = GetFilesFromFolder(folderToNonFeatures, '.png')
         bgndFiles = GetFilesFromFolder(folderToBgndImages, '.png')
 
+        # Parameters
+        generateBgndImageCount = 2
+        generateFeatureImageCount = 2
+        generateTransformationCount = 2
+
         imageDefect = GenerateDefectImage(featureFiles, bgndFiles, generateBgndImageCount, generateFeatureImageCount, generateTransformationCount)
         imageDefect = cv2.cvtColor(imageDefect, cv2.COLOR_BGRA2GRAY)
-        cv2.imwrite(os.path.join(folderToSaveGeneratedDefectImages, 'Image_' + str(iGenerate) + '.png'), image)
+        cv2.imwrite(os.path.join(folderToSaveTestDefectImages, 'Image_.png'), imageDefect)
 
     if (mode == ExecutionMode.TESTTRANSFORM):
         imageFolder = os.path.join(basePath, 'NonDefect')
