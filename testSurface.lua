@@ -13,8 +13,8 @@ setName = 'defectAndNonDefectAllAug'
 setImageSize = '64'
 
 print('Loading training data...')
-
-trainSet = torch.load(setName .. setImageSize .. '-train.t7', 'ascii')
+trainSetFileName = setName .. setImageSize .. '-train.t7'
+trainSet = torch.load(trainSetFileName, 'ascii')
 classes = {'defect', 'nonDefect'}
 
 setmetatable(trainSet,
@@ -28,7 +28,7 @@ function trainSet:size()
 end
 trainSet.data = trainSet.data:double()
 
-print('Loaded training data.')
+print('Loaded training data. (' .. trainSetFileName .. ' with ' .. trainSet.data:size(1) .. ' images)')
 
 mean, stdv = {}, {}
 for i = 1, trainSet.data:size(2) do --for each channel
@@ -49,7 +49,7 @@ print('Using ' .. trainSet.data:size(3) .. 'x' .. trainSet.data:size(4) .. ' ima
 
 net = nn.Sequential()
 
---input 1x256x256
+--input 1x64x64
 net:add(nn.SpatialConvolution(trainSet.data:size(2), 32, 3, 3, 1, 1, 1, 1):init('weight', nninit.normal, 0, 0.1)) -- nInputPlane, nOutputPlane, kW, kH
 net:add(nn.ReLU())
 net:add(nn.SpatialMaxPooling(2, 2, 2, 2))
