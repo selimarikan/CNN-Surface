@@ -4,20 +4,20 @@ require 'image'
 require 'nn'
 require 'dataset' -- local
 
-local basePath = 'G:/Selim/Thesis/Code/EBA5/'
+local basePath = 'G:/Selim/Thesis/Code/3MSet_All/'
 local extension = 'png'
 local imageSize = 64
-local setName = 'EBA5All' .. tostring(imageSize)
-local augmentation
+local setName = 'defectAndNonDefectAllAug' .. tostring(imageSize)
+local augmentation = 1
 
 -- Load images works, loads a table of tensors
 defectImages = LoadImages(basePath .. 'Defect/', extension)
 if augmentation then
-	augDefectImages = LoadImages(basePath .. 'DefectAug/', extension)
+	augDefectImages = LoadImages(basePath .. 'GeneratedDefect/', extension)
 end
 nonDefectImages = LoadImages(basePath .. 'NonDefect/', extension)
 if augmentation then
-	augNonDefectImages = LoadImages(basePath .. 'NonDefectAug/', extension)
+	augNonDefectImages = LoadImages(basePath .. 'GeneratedNonDefect/', extension)
 end
 print('Images loaded. ') -- .. #defectImages .. ' defectImages, ' .. #augDefectImages .. ' augDefectImages, ' .. #nonDefectImages .. ' nonDefectImages, ' .. #augNonDefectImages .. ' augNonDefectImages')
 
@@ -45,11 +45,11 @@ print('Concat done. ') -- .. #allImages .. ' allImages, ' .. #augAllImages .. ' 
 
 -- Scale images to imageSize x imageSize
 for i = 1, #allImages do
-	allImages[i] = image.scale(allImages[i], imageSize, imageSize, 'bicubic')
+	allImages[i] = image.scale(allImages[i], imageSize, imageSize, 'bilinear')
 end
 if augmentation then
 	for i = 1, #augAllImages do
-		augAllImages[i] = image.scale(augAllImages[i], imageSize, imageSize, 'bicubic')
+		augAllImages[i] = image.scale(augAllImages[i], imageSize, imageSize, 'bilinear')
 	end
 end
 print('Image resize done.') 
