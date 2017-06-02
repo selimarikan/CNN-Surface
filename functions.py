@@ -190,11 +190,11 @@ def GenerateDefectImage(featureFiles, backgroundFiles, backgroundImageCount, fea
         #imageToBeMerged = ShiftImage(imageToBeMerged, 50, 50)
         featureImage = MergeLayersAlpha(featureImage, imageToBeMerged)
 
-    # 6. Try blurring the feature image to suppress artifacts
-    featureImage = cv2.GaussianBlur(featureImage, (1, 1), 0)
+    # 6. Try blurring the feature image to suppress artifacts 
+    #featureImage = cv2.GaussianBlur(featureImage, (1, 1), 0)
 
-    # 7. Sharpen the background to compensate averaging
-    backgroundImage = UnsharpMask(backgroundImage)
+    # 7. Sharpen the background to compensate averaging - to be used with averaging
+    # backgroundImage = UnsharpMask(backgroundImage)
 
     if (showResult):
         # Visualize feature images

@@ -27,7 +27,7 @@ class ExecutionMode(Enum):
     TESTTRANSFORM = 5,
 
 if __name__ == '__main__':
-    mode = ExecutionMode.TESTGENERATE
+    mode = ExecutionMode.GENERATE
     basePath = r'C:\Users\Selim\Documents\GitHub\Files\3MSet_Large\\'
 
     if (mode == ExecutionMode.EXTRACT):
@@ -125,7 +125,7 @@ if __name__ == '__main__':
         featureImagePath = os.path.join(folderToExtractFeatures, 'cell_3M_TM1_Middle_Test01_Row_15_Col_8.png')  # col_8
         nonFeatureImagePath = os.path.join(folderToExtractNonFeatures, 'cell_3M_TM1_Middle_Test01_Row_92_Col_5.png')
         #ExtractImageFeaturesCV(featureImagePath, 0, 0, folderToSaveFeatures, isDefect=True)
-        ExtractImageFeaturesCV(nonFeatureImagePath, 0, 0, folderToSaveNonFeatures, isDefect=False)
+        ExtractImageFeaturesCV(nonFeatureImagePath, folderToSaveNonFeatures, isDefect=False)
 
     if (mode == ExecutionMode.TESTGENERATE):
         folderToFeatures = os.path.join(basePath, 'Features')
@@ -146,7 +146,7 @@ if __name__ == '__main__':
         generateFeatureImageCount = 1
         generateTransformationCount = 2
 
-        imageDefect = GenerateDefectImage(featureFiles, bgndFiles, generateBgndImageCount, generateFeatureImageCount, generateTransformationCount)
+        imageDefect = GenerateDefectImage(featureFiles, bgndFiles, generateBgndImageCount, generateFeatureImageCount, generateTransformationCount, isDefect=True)
         imageDefect = cv2.cvtColor(imageDefect, cv2.COLOR_BGRA2GRAY)
         cv2.imwrite(os.path.join(folderToSaveTestDefectImages, 'Image_.png'), imageDefect)
 
