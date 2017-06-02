@@ -22,7 +22,7 @@ def ShiftImage(image, maxShiftX = 100, maxShiftY = 100):
     mat = np.float32([[1, 0, shiftX], [0, 1, shiftY]])
     return cv2.warpAffine(image, mat, (cols, rows))
 
-def ExtractImageFeaturesCV(imagePath, featureLayersToExtract, kernelSize, featureSavePath, isDefect):
+def ExtractImageFeaturesCV(imagePath, featureSavePath, isDefect):
     showResult = False
     rawImage = cv2.imread(imagePath, cv2.IMREAD_GRAYSCALE)
     gaussianImage = cv2.GaussianBlur(rawImage, (51, 51), 0)
@@ -122,9 +122,9 @@ def TransformImage(image, transformation):
         return cv2.GaussianBlur(image, (kernelSize, kernelSize), 0)
 
     if (transformation == Transformation.BRIGHTNESS):
-        multRatio = ((np.random.rand(1, 1) - 0.5) / 3.5) # -0.14 to 0.14
-        return cv2.addWeighted(image, 1.0, image, multRatio, 0)
-
+        #multRatio = ((np.random.rand(1, 1) - 0.5) / 3.5) # -0.14 to 0.14
+        #return cv2.addWeighted(image, 1.0, image, multRatio, 0)
+        return image
     if (transformation == Transformation.SHIFT):
         return ShiftImage(image)
 
@@ -186,8 +186,8 @@ def GenerateDefectImage(featureFiles, backgroundFiles, backgroundImageCount, fea
             for iTrafo in xrange(generateTransformationCount):
                 trafoType = np.random.randint(0, 7)
                 imageToBeMerged = TransformImage(imageToBeMerged, Transformation(trafoType))
-        # 5.2 Shift again anyway
-        imageToBeMerged = ShiftImage(imageToBeMerged, 50, 50)
+        # ##5.2 Shift again anyway
+        #imageToBeMerged = ShiftImage(imageToBeMerged, 50, 50)
         featureImage = MergeLayersAlpha(featureImage, imageToBeMerged)
 
     # 6. Try blurring the feature image to suppress artifacts

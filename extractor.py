@@ -27,7 +27,7 @@ class ExecutionMode(Enum):
     TESTTRANSFORM = 5,
 
 if __name__ == '__main__':
-    mode = ExecutionMode.GENERATE
+    mode = ExecutionMode.TESTGENERATE
     basePath = r'C:\Users\Selim\Documents\GitHub\Files\3MSet_Large\\'
 
     if (mode == ExecutionMode.EXTRACT):
@@ -43,13 +43,14 @@ if __name__ == '__main__':
         bgndFiles = GetFilesFromFolder(folderToExtractNonFeatures, '.png')
 
         for image in imageFiles:
-            ExtractImageFeaturesCV(image, 0, 0, folderToSaveFeatures, isDefect=True)
+            ExtractImageFeaturesCV(image, folderToSaveFeatures, isDefect=True)
 
         for image in bgndFiles:
-            ExtractImageFeaturesCV(image, 0, 0, folderToSaveNonFeatures, isDefect=False)
+            ExtractImageFeaturesCV(image, folderToSaveNonFeatures, isDefect=False)
 
     if (mode == ExecutionMode.GENERATE):
-        generateCount = 100
+        generateDefectCount = 500
+        generateNonDefectCount = 2000
         folderToFeatures = os.path.join(basePath, 'Features')
         folderToNonFeatures = os.path.join(basePath, 'NonFeatures')
         folderToBgndImages = os.path.join(basePath, 'NonDefect')
@@ -64,16 +65,16 @@ if __name__ == '__main__':
         bgndFiles = GetFilesFromFolder(folderToBgndImages, '.png')
 
         # Parameters
-        generateBgndImageCount = 2
-        generateFeatureImageCount = 2
+        generateBgndImageCount = 1
+        generateFeatureImageCount = 1
         generateTransformationCount = 2
 
-        for iGenerate in xrange(0, generateCount):
+        for iGenerate in xrange(0, generateDefectCount):
             image = GenerateDefectImage(featureFiles, bgndFiles, generateBgndImageCount, generateFeatureImageCount, generateTransformationCount, isDefect=True)
             image = cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY)
             cv2.imwrite(os.path.join(folderToSaveGeneratedDefectImages, 'Image_' + str(iGenerate) + '.png'), image)
 
-        for iGenerate in xrange(0, generateCount):
+        for iGenerate in xrange(0, generateNonDefectCount):
             image = GenerateDefectImage(nonFeatureFiles, bgndFiles, generateBgndImageCount, generateFeatureImageCount, generateTransformationCount, isDefect=False)
             image = cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY)
             cv2.imwrite(os.path.join(folderToSaveGeneratedNonDefectImages, 'Image_' + str(iGenerate) + '.png'), image)
@@ -141,8 +142,8 @@ if __name__ == '__main__':
         bgndFiles = GetFilesFromFolder(folderToBgndImages, '.png')
 
         # Parameters
-        generateBgndImageCount = 2
-        generateFeatureImageCount = 2
+        generateBgndImageCount = 1
+        generateFeatureImageCount = 1
         generateTransformationCount = 2
 
         imageDefect = GenerateDefectImage(featureFiles, bgndFiles, generateBgndImageCount, generateFeatureImageCount, generateTransformationCount)
