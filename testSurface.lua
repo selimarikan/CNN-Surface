@@ -50,15 +50,15 @@ print('Using ' .. trainSet.data:size(3) .. 'x' .. trainSet.data:size(4) .. ' ima
 net = nn.Sequential()
 
 --input 1x64x64
-net:add(nn.SpatialConvolution(trainSet.data:size(2), 32, 3, 3, 1, 1, 1, 1):init('weight', nninit.normal, 0, 0.1)) -- nInputPlane, nOutputPlane, kW, kH
+net:add(nn.SpatialConvolution(trainSet.data:size(2), 32, 3, 3, 1, 1, 1, 1)) -- :init('weight', nninit.normal, 0, 0.1)
 net:add(nn.ReLU())
 net:add(nn.SpatialMaxPooling(2, 2, 2, 2))
 
-net:add(nn.SpatialConvolution(32, 32, 3, 3, 1, 1, 1, 1):init('weight', nninit.normal, 0, 0.1))
+net:add(nn.SpatialConvolution(32, 32, 3, 3, 1, 1, 1, 1)) -- :init('weight', nninit.normal, 0, 0.1)
 net:add(nn.ReLU())
 net:add(nn.SpatialMaxPooling(2, 2, 2, 2)) -- kWxkH regions by step size dWxdH
 
-net:add(nn.SpatialConvolution(32, 32, 3, 3, 1, 1, 1, 1):init('weight', nninit.normal, 0, 0.1))
+net:add(nn.SpatialConvolution(32, 32, 3, 3, 1, 1, 1, 1)) -- :init('weight', nninit.normal, 0, 0.1)
 net:add(nn.ReLU())
 net:add(nn.SpatialMaxPooling(2, 2, 2, 2))
 
@@ -67,17 +67,17 @@ outMul = imageSize / 8
 
 net:add(nn.View(32*outMul*outMul))
 
-net:add(nn.Linear(32*outMul*outMul, 4096):init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}}))
+net:add(nn.Linear(32*outMul*outMul, 4096)) --:init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}})
 net:add(nn.ReLU())
 net:add(nn.Dropout(0.5))
-net:add(nn.Linear(4096, 4096):init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}}))
+net:add(nn.Linear(4096, 4096)) -- :init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}})
 net:add(nn.ReLU())
 net:add(nn.Dropout(0.5))
-net:add(nn.Linear(4096, 4096):init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}}))
+net:add(nn.Linear(4096, 4096)) -- :init('weight', nninit.kaiming, { dist = 'uniform', gain = {'relu'}})
 net:add(nn.ReLU())
 net:add(nn.Dropout(0.5))
 
-net:add(nn.Linear(4096, #classes):init('weight', nninit.sparse, 0.1))
+net:add(nn.Linear(4096, #classes)) -- :init('weight', nninit.sparse, 0.1)
 net:add(nn.LogSoftMax())
 
 if useCUDA then
