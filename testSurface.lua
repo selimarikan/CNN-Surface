@@ -119,7 +119,7 @@ if not trainer.shuffleIndices then
          shuffledIndices[t] = t
       end
 end
-
+print(shuffledIndices)
 print("# StochasticGradient: training")
 
 while true do
@@ -128,7 +128,7 @@ while true do
          local example = dataset[shuffledIndices[t]]
          local input = example[1]
          local target = example[2]
-
+         print(#example)
          currentError = currentError + criterion:forward(module:forward(input), target)
 
          module:updateGradInput(input, criterion:updateGradInput(module.output, target))
