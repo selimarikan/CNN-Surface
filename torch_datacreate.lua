@@ -7,7 +7,7 @@ require 'dataset' -- local
 local basePath = 'G:/Selim/Thesis/Code/3MSet_All/'
 local extension = 'png'
 local imageSize = 64
-local setName = 'defectAndNonDefectAllAug' .. tostring(imageSize)
+local setName = 'defectAndNonDefectAllAug10k' .. tostring(imageSize)
 local augmentation = 1
 
 -- Load images works, loads a table of tensors

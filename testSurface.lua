@@ -9,7 +9,7 @@ if useCUDA then
   require 'cunn'
 end
 
-setName = 'defectAndNonDefectAllAug'
+setName = 'defectAndNonDefectAllAug10k'
 setImageSize = '64'
 
 print('Loading training data...')
